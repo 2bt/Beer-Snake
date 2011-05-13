@@ -180,8 +180,8 @@ class Main:
 		glPopMatrix()
 
 		glColor(1, 1, 1)
-		center(0, 0, "Collect as manny bottes as you can!")
-		center(0, -40, "Get hammered, but don't hurt your head.")
+		center(0, 0, "Collect as many bottles as you can!")
+		center(0, -40, "Get hammered but don't hurt your head.")
 		center(0, -100, "Press SPACE to start.")
 		center(0, -140, "Press ESC to exit.")
 
