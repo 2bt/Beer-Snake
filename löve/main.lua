@@ -1,17 +1,25 @@
 require("font")
 
-function love.keypressed(key, unicode)
+function love.keypressed(key)
 	-- quit with escape
 	if key == "escape" then
 		love.event.push("q")
 	elseif key == "f" then
 		love.graphics.toggleFullscreen()
+	elseif key == " " then
+		space = true
+	end
+end
+
+function love.keyreleased(key)
+	if key == " " then
+		space = nil
 	end
 end
 
 
 function love.quit()
-	print("Don't drink and drive.")
+	print("Remember: don't drink and drive.")
 end
 
 function love.load()
@@ -19,24 +27,14 @@ function love.load()
 	love.graphics.setBackgroundColor(50, 50, 50)
 	font.init()
 
-	snake = {
-		x = 0,
-		y = 0,
-		dir = 0,
-		tail = {},
-		length = 22 + 500,
-		speed = 2,
-		score = 0
-	}
-
 	bottle = {
 		img = love.graphics.newImage("bottle.png"),
 	}
 	function bottle:set()
 		-- find a place not already occupied by the snake
 		for i = 1, 20 do
-			self.x = math.random(-370, 370)
-			self.y = math.random(-270, 270)
+			self.x = math.random(-360, 360)
+			self.y = math.random(-260, 260)
 
 			local collision = false
 			for j, s in pairs(snake.tail) do
@@ -49,18 +47,90 @@ function love.load()
 			end
 			if not collision then return end
 		end
-		print("not")
 	end
-	bottle:set()
 
-
+	state.current = state.start
 	tick = 0
-	death_delay = 30
+end
+
+function love.draw()
+	-- camera setup
+	local width = love.graphics.getWidth()
+	local height = love.graphics.getHeight()
+	love.graphics.scale(width / 800, height / 600)
+	love.graphics.translate(400, 300)
+
+	state.current:draw()
+end
+
+function love.update()
+	state.current:update()
 end
 
 
-function love.update()
+state = { start = {}, ingame = {}, over = {} }
 
+function state.start:update()
+	tick = tick + 1
+
+	if space then
+		space = nil
+		state.current = state.ingame
+
+		snake = {
+			x = 0,
+			y = 0,
+			dir = 0,
+			tail = {},
+			speed = 4,
+			length = 18,
+			score = 0,
+		}
+		bottle:set()
+
+		tick = 0
+	end
+end
+
+
+function state.start:draw()
+	love.graphics.setColor(127, 127 + 127 * math.sin(tick * 0.1), 127)
+	font.print_centered("Beer Snake", math.floor(math.sin(tick * 0.05) * 30), -160, 8)
+
+	love.graphics.setColor(255, 255, 255)
+	font.print_centered("Collect as many bottles as you can!", 0, 0)
+	font.print_centered("Get hammered but don't hurt your head.", 0, 40)
+	font.print_centered("Press SPACE to start.", 0, 100)
+	font.print_centered("Press ESC to exit.", 0, 140)
+end
+
+function state.over:update()
+	if space then
+		space = nil
+		state.current = state.start
+	end
+end
+
+
+function state.over:draw()
+
+	state.ingame:draw()
+
+	love.graphics.setColor(255, 255, 255)
+	font.print_centered("Game Over", 0, -160, 8)
+
+	love.graphics.setColor(255, 255, 255)
+	font.print_centered("You collected %d bottle%s!" %
+		{ snake.score, snake.score == 1 and "" or "s" }, 0, 0)
+
+	if snake.score >= 30 then
+		font.print_centered("Not too bad.", 0, 40)
+	end
+	font.print_centered("Press SPACE.", 0, 100)
+end
+
+
+function state.ingame:update()
 	-- collision
 	local collision = math.abs(snake.x) > 385 or math.abs(snake.y) > 285
 
@@ -74,10 +144,8 @@ function love.update()
 	end
 
 	if collision then
-		if death_delay == 0 then
-			love.event.push("q")
-		end
-		death_delay = death_delay - 1
+		print("Ouch!")
+		state.current = state.over
 		return
 	end
 
@@ -85,20 +153,24 @@ function love.update()
 	local dy = bottle.y - snake.y
 	if dx * dx + dy * dy < 1200 then
 		snake.score = snake.score + 1
-		snake.length = snake.length + 20
+		snake.length = snake.length + 10
 		bottle:set()
 	end
-
 
 	tick = tick + 1
 
 	-- movement
+	local dd = math.sin(tick * 0.16) * 0.004 * snake.score
 	if love.keyboard.isDown("left") then
-		snake.dir = snake.dir - 0.1
+		dd = dd - 0.1
 	end
 	if love.keyboard.isDown("right") then
-		snake.dir = snake.dir + 0.1
+		dd = dd + 0.1
 	end
+	if math.abs(dd) > 0.2 then
+		dd = 0.2 * dd / math.abs(dd)
+	end
+	snake.dir = snake.dir + dd
 
 	snake.x = snake.x + math.sin(snake.dir) * snake.speed
 	snake.y = snake.y - math.cos(snake.dir) * snake.speed
@@ -106,30 +178,21 @@ function love.update()
 	table.insert(snake.tail, 1, {x = snake.x, y = snake.y})
 	snake.tail[snake.length + 1] = nil
 
-
 end
 
-
-function love.draw()
-
-	-- camera setup
-	local width = love.graphics.getWidth()
-	local height = love.graphics.getHeight()
-	love.graphics.scale(width / 800, height / 600)
-	love.graphics.translate(400, 300)
-
+function state.ingame:draw()
 
 	-- draw bottle
 	love.graphics.setColor(255, 255, 0)
 	love.graphics.draw(bottle.img, bottle.x, bottle.y, math.sin(tick * 0.05) * 0.8,
 			1, 1, bottle.img:getWidth() / 2, bottle.img:getHeight() / 2)
 
-
 	-- draw tail
 	love.graphics.setColor(0, 160, 0)
-	for i = 7, #snake.tail do
+	for i = 4, #snake.tail do
 		love.graphics.circle("fill", snake.tail[i].x, snake.tail[i].y,
-				10 + math.abs(math.cos(i * 0.2)) * 3, 16)
+				10 + math.abs(math.cos(i * 0.2 + 0.8)) * 3, 16)
+--				12, 16)
 	end
 
 	-- draw head
@@ -145,7 +208,6 @@ function love.draw()
 	-- score
 	love.graphics.setColor(255, 255, 255, 150)
 	font.print("Score: %2d" % snake.score, -390, 290 - 16)
-
 end
 
 

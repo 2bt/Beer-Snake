@@ -1,4 +1,3 @@
-
 font = {}
 local img, quads
 
@@ -33,7 +32,6 @@ function font.print(text, x, y, s)
 	love.graphics.pop()
 end
 
-
 -- python-like modulo operator for strings
 getmetatable("").__mod = function(s, a)
 	if not a then
@@ -44,5 +42,4 @@ getmetatable("").__mod = function(s, a)
 		return s:format(a)
 	end
 end
-
 
