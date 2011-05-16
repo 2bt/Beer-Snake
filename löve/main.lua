@@ -66,7 +66,6 @@ end
 function love.update(dt)
 	state.current:update()
 	love.timer.sleep(25 - (dt * 1000))
-	print(25 - (dt * 1000))
 end
 
 
