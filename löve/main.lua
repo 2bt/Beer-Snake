@@ -17,7 +17,6 @@ function love.keyreleased(key)
 	end
 end
 
-
 function love.quit()
 	print("Remember: don't drink and drive.")
 end
@@ -26,6 +25,12 @@ function love.load()
 	love.mouse.setVisible(false)
 	love.graphics.setBackgroundColor(50, 50, 50)
 	font.init()
+
+	sound = {
+		collide = love.audio.newSource("collide.wav", "static"),
+		select = love.audio.newSource("select.wav", "static"),
+		collect = love.audio.newSource("collect.wav", "static")
+	}
 
 	bottle = {
 		tick = 0,
@@ -90,6 +95,8 @@ function state.start:update()
 		}
 		bottle:set()
 
+		sound.select:stop()
+		sound.select:play()
 	end
 end
 
@@ -110,6 +117,9 @@ function state.over:update()
 	if space then
 		space = nil
 		state.current = state.start
+
+		sound.select:stop()
+		sound.select:play()
 	end
 end
 
@@ -118,7 +128,7 @@ function state.over:draw()
 
 	state.ingame:draw()
 
-	love.graphics.setColor(255, 255, 255)
+	love.graphics.setColor(255, 255, 255, 150)
 	font.print_centered("Game Over", 0, -160, 8)
 
 	love.graphics.setColor(255, 255, 255)
@@ -152,6 +162,10 @@ function state.ingame:update()
 	if collision then
 		print("Ouch!")
 		state.current = state.over
+
+		sound.collide:stop()
+		sound.collide:play()
+
 		return
 	end
 
@@ -161,8 +175,10 @@ function state.ingame:update()
 		snake.score = snake.score + 1
 		snake.length = snake.length + 10
 		bottle:set()
-	end
 
+		sound.collect:stop()
+		sound.collect:play()
+	end
 
 	-- movement
 
@@ -185,6 +201,7 @@ function state.ingame:update()
 	snake.tail[snake.length + 1] = nil
 
 end
+
 
 function state.ingame:draw()
 
