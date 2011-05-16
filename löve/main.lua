@@ -65,7 +65,8 @@ end
 
 function love.update(dt)
 	state.current:update()
-	love.timer.sleep(25 - (dt * 1000))
+	print(love.timer.getFPS())
+	love.timer.sleep(1000 / 60 - (dt * 1000))
 end
 
 
