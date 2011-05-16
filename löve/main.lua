@@ -28,7 +28,8 @@ function love.load()
 	font.init()
 
 	bottle = {
-		img = love.graphics.newImage("bottle.png"),
+		tick = 0,
+		img = love.graphics.newImage("bottle.png")
 	}
 	function bottle:set()
 		-- find a place not already occupied by the snake
@@ -50,7 +51,6 @@ function love.load()
 	end
 
 	state.current = state.start
-	tick = 0
 end
 
 function love.draw()
@@ -63,21 +63,23 @@ function love.draw()
 	state.current:draw()
 end
 
-function love.update()
+function love.update(dt)
 	state.current:update()
+	love.timer.sleep(25 - dt)
 end
 
 
 state = { start = {}, ingame = {}, over = {} }
 
 function state.start:update()
-	tick = tick + 1
+	self.tick = (self.tick or 0) + 1
 
 	if space then
 		space = nil
 		state.current = state.ingame
 
 		snake = {
+			tick = 0,
 			x = 0,
 			y = 0,
 			dir = 0,
@@ -88,14 +90,13 @@ function state.start:update()
 		}
 		bottle:set()
 
-		tick = 0
 	end
 end
 
 
 function state.start:draw()
-	love.graphics.setColor(127, 127 + 127 * math.sin(tick * 0.1), 127)
-	font.print_centered("Beer Snake", math.floor(math.sin(tick * 0.05) * 30), -160, 8)
+	love.graphics.setColor(127, 127 + 127 * math.sin(self.tick * 0.1), 127)
+	font.print_centered("Beer Snake", math.floor(math.sin(self.tick * 0.05) * 30), -160, 8)
 
 	love.graphics.setColor(255, 255, 255)
 	font.print_centered("Collect as many bottles as you can!", 0, 0)
@@ -105,6 +106,7 @@ function state.start:draw()
 end
 
 function state.over:update()
+	bottle.tick = bottle.tick + 1
 	if space then
 		space = nil
 		state.current = state.start
@@ -131,6 +133,10 @@ end
 
 
 function state.ingame:update()
+
+	snake.tick = snake.tick + 1
+	bottle.tick = bottle.tick + 1
+
 	-- collision
 	local collision = math.abs(snake.x) > 385 or math.abs(snake.y) > 285
 
@@ -157,10 +163,10 @@ function state.ingame:update()
 		bottle:set()
 	end
 
-	tick = tick + 1
 
 	-- movement
-	local dd = math.sin(tick * 0.16) * 0.004 * snake.score
+
+	local dd = math.sin(snake.tick * 0.16) * 0.004 * snake.score
 	if love.keyboard.isDown("left") then
 		dd = dd - 0.1
 	end
@@ -184,7 +190,7 @@ function state.ingame:draw()
 
 	-- draw bottle
 	love.graphics.setColor(255, 255, 0)
-	love.graphics.draw(bottle.img, bottle.x, bottle.y, math.sin(tick * 0.05) * 0.8,
+	love.graphics.draw(bottle.img, bottle.x, bottle.y, math.sin(bottle.tick * 0.05) * 0.8,
 			1, 1, bottle.img:getWidth() / 2, bottle.img:getHeight() / 2)
 
 	-- draw tail
@@ -197,7 +203,7 @@ function state.ingame:draw()
 
 	-- draw head
 	local poly = { snake.x, snake.y }
-	local f = math.pi / 180 * (0.86 + math.sin(tick * 0.2) * 0.12)
+	local f = math.pi / 180 * (0.86 + math.sin(snake.tick * 0.2) * 0.12)
 	for i = -180, 180, 20 do
 		table.insert(poly, snake.x + math.sin(i * f - snake.dir) * 15)
 		table.insert(poly, snake.y + math.cos(i * f - snake.dir) * 15)
