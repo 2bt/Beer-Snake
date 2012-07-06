@@ -3,7 +3,7 @@ require("font")
 function love.keypressed(key)
 	-- quit with escape
 	if key == "escape" then
-		love.event.push("q")
+		love.event.quit()
 	elseif key == "f" then
 		love.graphics.toggleFullscreen()
 	elseif key == " " then
@@ -70,14 +70,14 @@ end
 
 function love.update(dt)
 	state.current:update()
-	love.timer.sleep(1000 / 60 - (dt * 1000))
+	love.timer.sleep(1 / 60 - dt)
 end
 
 
-state = { start = {}, ingame = {}, over = {} }
+state = { start = { tick = 0 }, ingame = {}, over = {} }
 
 function state.start:update()
-	self.tick = (self.tick or 0) + 1
+	self.tick = self.tick + 1
 
 	if space then
 		space = nil

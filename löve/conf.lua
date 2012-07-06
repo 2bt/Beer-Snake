@@ -7,4 +7,5 @@ function love.conf(t)
 	t.screen.fsaa = 4
 	t.screen.width = 800
 	t.screen.height = 600
+
 end
