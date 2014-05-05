@@ -25,7 +25,7 @@ function font.print(text, x, y, s)
 	for c in text:gmatch(".") do
 		local q = quads[c]
 		if q then
-			love.graphics.drawq(img, q, x, y, 0, s)
+			love.graphics.draw(img, q, x, y, 0, s)
 		end
 		love.graphics.translate(8 * s, 0)
 	end
