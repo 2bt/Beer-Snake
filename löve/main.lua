@@ -6,13 +6,13 @@ function love.keypressed(key)
 		love.event.quit()
 	elseif key == "f" then
 		love.graphics.toggleFullscreen()
-	elseif key == " " then
+	elseif key == "space" then
 		space = true
 	end
 end
 
 function love.keyreleased(key)
-	if key == " " then
+	if key == "space" then
 		space = nil
 	end
 end
